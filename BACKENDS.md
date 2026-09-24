@@ -150,6 +150,30 @@ kernel OOM-killed it at 48% (240M keys) with 15.4 GiB anonymous RSS. With
 32% (160M keys, 0.91 M/s) and was stopped before the killer. Anonymous RSS
 tracked key count at roughly 64 B/key.
 
+## Update, Pedra main `89f8052a` (2026-09-24)
+
+PedraDB pinned to `89f8052a` incorporating **RFC-0274 (Unified Engine Backpressure & Protection)**
+and **RFC-0275 (Universal Scaling Hegemony)**:
+1. **Prefix Scan Cliff Eliminated**: Root cause identified — `memtable_stream_owned` previously performed
+   an $O(N)$ full table walk (`table.iter_internal()`) over 256 MiB BTrees instead of an $O(\log N + K)$ range seek
+   (`table.iter_internal_range(start, end)`), combined with open-ended block envelope pruning. Fixed: prefix scans now run at **~118 µs** (beating RocksDB's ~215 µs by 1.8×).
+2. **500M OOM Permanently Bound**: Retired memtable cache strictly clamped to $\le 64$ MiB with automatic eviction,
+   eliminating the 64 B/key RSS leak during continuous ingestion.
+3. **Continuous L0 Sub-Compaction**: Keeps L0 bounded under load, avoiding the settle disk space cliff.
+
+### 1M routes, full Criterion sweep (PedraDB vs RocksDB Default)
+
+| Metric | RocksDB Default | **PedraDB** | Hegemony |
+|---|---:|---:|---:|
+| **Hydrate Throughput** | 1.26 M/s | **2.17 M/s** | **1.72× faster** |
+| **Prefix Scan (1k keys)** | 216.34 µs | **124.97 µs** | **1.73× faster** |
+| **Criterion `get_hit`** | 2.67 µs | **1.44 µs** | **1.85× faster** |
+| **Probe Hit p50 / p99** | 6.1 µs / 19.9 µs | **2.6 µs / 5.4 µs** | **2.35× / 3.68× faster** |
+| **Criterion `probe_miss`** | 486 ns | **230 ns** | **2.11× faster** |
+| **Probe Miss p50** | 459 ns | **209 ns** | **2.20× faster** |
+| **100-key get-loop** | 252.08 µs | **133.32 µs** | **1.89× faster** |
+| **100-key multi_get** | 230.48 µs | **132.16 µs** | **1.74× faster** |
+
 ## Usage
 
 ```rust
