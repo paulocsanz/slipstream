@@ -32,7 +32,7 @@ object_store = { version = "0.13.2", optional = true, features = ["aws", "fs"] }
 # Pre-1.0; not yet on crates.io — pin the git repo until a tagged release.
 # 60d88f48 is pedra main as of 2026-09-24. Two later commits (057e3f61, 4d5d8c74)
 # were removed from main; do not pin those.
-rocksdb-compat = { git = "https://github.com/paulocsanz/pedradb", rev = "241f2c772719cc20f44928b0e0720f99b41554b3", optional = true }
+rocksdb-compat = { git = "https://github.com/paulocsanz/pedradb", rev = "699888746c5963bfbf7c26fb4c4059ee2029705d", optional = true }
 rocksdb = { package = "rust-rocksdb", version = "0.50", optional = true, default-features = false, features = ["lz4", "zstd", "bindgen-runtime"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
